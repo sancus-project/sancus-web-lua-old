@@ -14,15 +14,7 @@ module (...)
 local M = Class{ compile = TemplateCompiler }
 
 function M:add_regex(template, handler)
-	t = self.urls or {}
-	if not self.urls then
-		self.urls = t
-	end
-
-	t[#t+1] = {
-		template = template,
-		handler = handler,
-	}
+	self.patterns[template] = handler
 end
 
 function M:add(template, handler)
@@ -43,4 +35,8 @@ function M:make_app()
 	end
 end
 
-PathMapper = M.new
+function PathMapper(o)
+	o = M.new(o)
+	o.patterns = o.patterns or {}
+	return o
+end
