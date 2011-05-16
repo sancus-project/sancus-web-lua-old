@@ -1,10 +1,19 @@
 --
 
+local setmetatable = setmetatable
+
 module(...)
 
-function Class(o)
-	o = o or {}
-	o.__index = o
+--
+function Class(c)
+	c = c or {}
+	c.__index = c
 
-	return o
+	function c.new(o)
+		o = o or {}
+		setmetatable(o, c)
+		return o
+	end
+
+	return c
 end
