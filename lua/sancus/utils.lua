@@ -19,7 +19,9 @@ function pprint(t, name, indent)
 
 	local function basicSerialize (o)
 		local so = tostring(o)
-		if type(o) == "function" then
+		if o == nil then
+			return "nil"
+		elseif type(o) == "function" then
 			local info = debug.getinfo(o, "S")
 			-- info.name is nil because o is not a calling level
 			if info.what == "C" then
