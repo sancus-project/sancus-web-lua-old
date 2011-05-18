@@ -73,7 +73,7 @@ function pprint(t, name, indent)
 		end
 	end
 
-	name = name or "__unnamed__"
+	name = tostring(name) or "__unnamed__"
 	if type(t) ~= "table" then
 		return name .. " = " .. basicSerialize(t)
 	end
