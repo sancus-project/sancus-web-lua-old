@@ -1,9 +1,13 @@
 --
 
+require "sancus.utils"
+
 local lpeg = require("lpeg")
 local P,R,S,C,V = lpeg.P, lpeg.R, lpeg.S, lpeg.C, lpeg.V
 
 local assert = assert
+
+local pp = function (...) print(sancus.utils.pprint(...)) end
 
 module (...)
 
@@ -23,13 +27,22 @@ local function parser()
 	local Data = V"Data"
 	local Predicate, Name, Option = V"Predicate", V"Name", V"Option"
 
+	local function token(t)
+		return function(s)
+			if s == "" then
+				s = nil
+			end
+			pp(s, t)
+		end
+	end
+
 	return P{URL,
 		URL = Data^1 * EOL,
 		Data = (Predicate + any),
 
 		-- "{" name (":" option ("|" option)*) "}"
-		Name = identifier,
-		Option = (segment^1),
+		Name = identifier/token("name"),
+		Option = (segment^1)/token("option"),
 		Predicate = P"{" * Name * (
 			P":" * Option * (
 				P"|" * Option
@@ -37,7 +50,7 @@ local function parser()
 			)^-1 * P"}",
 
 		-- $<eos> or <eos>
-		EOL = (eol * eos) + eos,
+		EOL = (eol * eos)/token("eol") + eos,
 	}
 end
 parser = assert(parser())
