@@ -26,6 +26,7 @@ local function parser()
 	local URL, EOL = V"URL", V"EOL"
 	local Data = V"Data"
 	local Predicate, Name, Option = V"Predicate", V"Name", V"Option"
+	local Optional = V"Optional"
 
 	local function token(t)
 		return function(s)
@@ -37,10 +38,13 @@ local function parser()
 	end
 
 	return P{URL,
-		URL = Data^1 * EOL,
-		Data = (Predicate + any),
+		URL = Data * EOL,
+		Data = (Optional + Predicate + any)^1,
 
-		-- "{" name (":" option ("|" option)*) "}"
+		-- Optional <- "[" data "]"
+		Optional = (P"[" * Data * P"]")/token("optional"),
+
+		-- Predicate <- "{" name (":" option ("|" option)*) "}"
 		Name = identifier/token("name"),
 		Option = (segment^1)/token("option"),
 		Predicate = P"{" * Name * (
