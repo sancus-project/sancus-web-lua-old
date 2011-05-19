@@ -13,7 +13,6 @@ local pp = function (...) print(sancus.utils.pprint(...)) end
 module (...)
 
 local function parser()
-	local h = {}
 	local p
 
 	-- Lexical Elements
@@ -32,6 +31,9 @@ local function parser()
 	local Data = V"Data"
 	local Predicate, Name, Option = V"Predicate", V"Name", V"Option"
 	local Optional = V"Optional"
+
+	-- Callbacks
+	local h = {}
 
 	function h.predicate(name, ...)
 		local q
@@ -82,14 +84,8 @@ local function parser()
 		return q
 	end
 
-	function h.optional(...)
-		local q = h.fold({...})
-		return q^-1
-	end
-
-	function h.eol(_)
-		return eos
-	end
+	function h.optional(...) return h.fold({...})^-1 end
+	function h.eol(_) return eos end
 
 	p = P{URL,
 		URL = Data^1 * EOL,
