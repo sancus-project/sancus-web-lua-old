@@ -4,15 +4,17 @@ require "sancus.utils"
 
 local lpeg = require("lpeg")
 local P,R,S,V = lpeg.P, lpeg.R, lpeg.S, lpeg.V
-local C,Cg,Ct = lpeg.C, lpeg.Cg, lpeg.Ct
+local C,Cf,Cg,Ct = lpeg.C, lpeg.Cf, lpeg.Cg, lpeg.Ct
 
-local assert = assert
+local assert, type = assert, type
 
 local pp = function (...) print(sancus.utils.pprint(...)) end
 
 module (...)
 
 local function parser()
+	local h = {}
+
 	-- Lexical Elements
 	local alpha = R("az","AZ")
 	local num = R"09"
@@ -30,6 +32,14 @@ local function parser()
 	local Predicate, Name, Option = V"Predicate", V"Name", V"Option"
 	local Optional = V"Optional"
 
+	function h.predicate(name, ...)
+		return { name = name, type = "predicate", ... }
+	end
+
+	function h.optional(...)
+		return { type = "optional", ... }
+	end
+
 	return P{URL,
 		URL = Data^1 * EOL,
 		Data = Optional
@@ -37,17 +47,17 @@ local function parser()
 			+ C(any),
 
 		-- Optional <- "[" data "]"
-		Optional = Ct(bo * Data^1 * eo),
+		Optional = (bo * Data^1 * eo)/h.optional,
 
 		-- Predicate <- "{" name (":" option ("|" option)*) "}"
 		Name = C(identifier),
 		Option = C(segment^1),
 
-		Predicate = Ct(P"{" * Name * (
+		Predicate = (P"{" * Name * (
 			P":" * Option * (
 				P"|" * Option
 				)^0
-			)^-1 * P"}"),
+			)^-1 * P"}")/h.predicate,
 
 		-- $<eos> or <eos>
 		EOL = (eol * eos) + eos,
