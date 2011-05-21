@@ -10,7 +10,7 @@ module (...)
 -- table.show() stolen from
 -- http://lua-users.org/wiki/TableSerialization
 --
-function pprint(t, name, indent)
+function pformat(t, name, indent)
 	local cart	-- a container
 	local autoref	-- for self references
 
