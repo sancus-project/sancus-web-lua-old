@@ -4,17 +4,30 @@ require "sancus.utils"
 
 local lpeg = require("lpeg")
 local P,R,S,V = lpeg.P, lpeg.R, lpeg.S, lpeg.V
-local C,Cf,Cg,Ct = lpeg.C, lpeg.Cf, lpeg.Cg, lpeg.Ct
+local C,Cg,Ct,Cp = lpeg.C, lpeg.Cg, lpeg.Ct, lpeg.Cp
 
 local assert, type, ipairs = assert, type, ipairs
 
-local pp = function (...) print(sancus.utils.pprint(...)) end
-
 module (...)
 
-local function parser()
-	local p
 
+local function patt_concat(...)
+	local p
+	for i, x in ipairs({...}) do
+		if type(x) == "string" then
+			x = P(x) -- literal patterns
+		end
+
+		if p then
+			p = p * x
+		else
+			p = x
+		end
+	end
+	return p
+end
+
+local function parser()
 	-- Lexical Elements
 	local alpha = R("az","AZ")
 	local num = R"09"
@@ -49,45 +62,13 @@ local function parser()
 			end
 		end
 
-		return Cg(p or (segment^1), name) -- given options or any
+		return Cg(q or (segment^1), name) -- given options or any
 	end
 
-	function h.fold_literals(t)
-		local r = {}
-
-		for _, x in ipairs(t) do
-			if type(x) == "string" and type(r[#r]) == "string" then
-				r[#r] = r[#r] .. x
-			else
-				r[#r+1] = x
-			end
-		end
-
-		for i, x in ipairs(r) do
-			if type(x) == "string" then
-				r[i] = P(x)
-			end
-		end
-		return r
-	end
-
-	function h.fold(t)
-		local q
-
-		for _, x in ipairs(h.fold_literals(t)) do
-			if q then
-				q = q * x
-			else
-				q = x
-			end
-		end
-		return q
-	end
-
-	function h.optional(...) return h.fold({...})^-1 end
+	function h.optional(...) return patt_concat(...)^-1 end
 	function h.eol(_) return eos end
 
-	p = P{URL,
+	return P{URL,
 		URL = Data^1 * EOL,
 		Data = Optional
 			+ Predicate
@@ -109,10 +90,10 @@ local function parser()
 		-- $<eos> or <eos>
 		EOL = (eol * eos)/h.eol + eos,
 	}
-	return Ct(p)/h.fold
 end
 parser = assert(parser())
 
 function TemplateCompiler(t)
-	return parser:match(t)
+	p = patt_concat(parser:match(t))
+	return Ct(p * Cp())
 end
