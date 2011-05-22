@@ -5,8 +5,7 @@ require "sancus.urlparser"
 require "sancus.utils"
 
 local coroutine, pairs, assert = coroutine, pairs, assert
-local pprint = sancus.utils.pformat
-local format = string.format
+local pf, format = sancus.utils.pformat, string.format
 local Class = sancus.object.Class
 local TemplateCompiler = sancus.urlparser.TemplateCompiler
 
@@ -31,15 +30,15 @@ function M:make_app()
 		local function env_dump()
 			local path_info = wsapi_env.headers["PATH_INFO"] or ""
 
-			coroutine.yield(pprint(self, 'self'))
+			coroutine.yield(pf(self, 'self'))
 			for regex, handler in pairs(self.patterns) do
 				local c, p = regex:match(path_info)
 				if p then
-					coroutine.yield(pprint(c, handler))
+					coroutine.yield(pf(c, handler))
 					break
 				end
 			end
-			coroutine.yield(pprint(wsapi_env.headers, 'env'))
+			coroutine.yield(pf(wsapi_env.headers, 'env'))
 		end
 
 		return 200, headers, coroutine.wrap(env_dump)
