@@ -75,7 +75,7 @@ function pformat(t, name, indent)
 
 	name = tostring(name) or "__unnamed__"
 	if type(t) ~= "table" then
-		return name .. " = " .. basicSerialize(t)
+		return name .. " = " .. basicSerialize(t) .. ";\n"
 	end
 	cart, autoref = "", ""
 	addtocart(t, name, indent)
