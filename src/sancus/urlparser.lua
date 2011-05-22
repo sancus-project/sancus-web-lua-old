@@ -95,5 +95,7 @@ parser = assert(parser())
 
 function TemplateCompiler(t)
 	p = patt_concat(parser:match(t))
-	return Ct(p) * Cp()
+	if p then
+		return Ct(p) * Cp()
+	end
 end
