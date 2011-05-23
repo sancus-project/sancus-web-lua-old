@@ -15,14 +15,14 @@ module (...)
 
 local M = Class{ compile = TemplateCompiler }
 
-function M:add_regex(template, handler)
-	self.patterns[template] = handler
+function M:add_regex(template, handler, default)
+	self.patterns[template] = { handler = handler, default = default or {} }
 end
 
-function M:add(template, handler)
+function M:add(template, handler, default)
 	expr = self.compile(template)
 	assert(expr ~= nil, format("invalid template: %s", template))
-	return self:add_regex(expr, handler)
+	return self:add_regex(expr, handler, default)
 end
 
 function M:make_app()
@@ -38,7 +38,7 @@ function M:find_handler(env)
 	local path_info = env.headers["PATH_INFO"] or ""
 	local routing_args = env.headers["sancus.routing_args"] or {}
 
-	for regex, handler in pairs(self.patterns) do
+	for regex, t in pairs(self.patterns) do
 		local c, p = regex:match(path_info)
 
 		if p then
@@ -53,12 +53,18 @@ function M:find_handler(env)
 				for k,v in pairs(c) do
 					routing_args[k] = v
 				end
+				-- and import default fields
+				for k,v in pairs(t.default) do
+					if not routing_args[k] then
+						routing_args[k] = v
+					end
+				end
 
 				env.headers["sancus.routing_args"] = routing_args
 				env.headers["SCRIPT_NAME"] = script_name .. matched_path_info
 				env.headers["PATH_INFO"] = extra_path_info
 
-				return handler
+				return t.handler
 			end
 		end
 	end
