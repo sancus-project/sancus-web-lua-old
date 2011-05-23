@@ -3,11 +3,13 @@
 require "sancus.object"
 require "sancus.urlparser"
 require "sancus.utils"
+require "sancus.exc"
 
 local coroutine, pairs, assert = coroutine, pairs, assert
 local pf, format = sancus.utils.pformat, string.format
 local Class = sancus.object.Class
 local TemplateCompiler = sancus.urlparser.TemplateCompiler
+local handle404 = sancus.exc.handle404
 
 module (...)
 
@@ -25,20 +27,9 @@ end
 
 function M:make_app()
 	return function (wsapi_env)
-		local handler = self:find_handler(wsapi_env)
-		local headers = { ["Content-Type"] = "text/plain" }
+		local handler = self:find_handler(wsapi_env) or handle404
 
-		local function env_dump()
-			coroutine.yield(pf(self, 'self'))
-			coroutine.yield(pf(handler, 'handler'))
-			coroutine.yield(pf(wsapi_env.headers, 'env'))
-		end
-
-		if not handler then
-			return 404, headers, coroutine.wrap(env_dump)
-		end
-
-		return 200, headers, coroutine.wrap(env_dump)
+		return handler(wsapi_env)
 	end
 end
 
