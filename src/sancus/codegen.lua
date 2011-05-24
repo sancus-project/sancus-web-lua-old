@@ -31,6 +31,6 @@ function loaddir_raw(dir, out, prefix)
 	return out
 end
 
-function loaddir(dir)
-	return CodeGen(loaddir_raw(dir))
+function loaddir(dir, prefix)
+	return CodeGen(loaddir_raw(dir, {}, prefix))
 end
