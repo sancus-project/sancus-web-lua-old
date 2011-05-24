@@ -3,9 +3,9 @@
 require "CodeGen"
 require "lfs"
 
-local lfs, CodeGen = lfs, CodeGen
+local lfs, coroutine, CodeGen = lfs, coroutine, CodeGen
 local sformat, fopen = string.format, io.open
-local assert = assert
+local assert, pairs = assert, pairs
 
 module(...)
 
@@ -33,4 +33,24 @@ end
 
 function loaddir(dir, prefix)
 	return CodeGen(loaddir_raw(dir, {}, prefix))
+end
+
+function renderer(env, default_headers)
+	return function (template, data, status, headers)
+		data = data or {}
+		headers = headers or {}
+		status = status or 200
+
+		for k,v in pairs(default_headers) do
+			if not headers[k] then
+				headers[k] = v
+			end
+		end
+
+		local function body()
+			coroutine.yield(CodeGen(data, env)(template))
+		end
+
+		return status, headers, coroutine.wrap(body)
+	end
 end
