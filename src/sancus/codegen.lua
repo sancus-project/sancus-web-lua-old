@@ -9,7 +9,7 @@ local assert, pairs = assert, pairs
 
 module(...)
 
-function loaddir_raw(dir, out, prefix)
+function loaddir_raw(dir, prefix, out)
 	prefix = prefix or ""
 	out = out or {}
 
@@ -17,7 +17,7 @@ function loaddir_raw(dir, out, prefix)
 		if not fn:match("^[.]") then
 			local ffn = sformat("%s/%s", dir, fn)
 			if lfs.attributes(ffn, "mode") == "directory" then
-				loaddir_raw(ffn, out, sformat("%s%s_", prefix, fn))
+				loaddir_raw(ffn, sformat("%s%s_", prefix, fn), out)
 			else
 				local bn = fn:match("^(.*)[.]([^.]+)$") or fn
 				local f = assert(fopen(ffn, "r"))
@@ -31,8 +31,8 @@ function loaddir_raw(dir, out, prefix)
 	return out
 end
 
-function loaddir(dir, prefix)
-	return CodeGen(loaddir_raw(dir, {}, prefix))
+function loaddir(dir, prefix, out)
+	return CodeGen(loaddir_raw(dir, prefix or '', out or {}))
 end
 
 function renderer(env, default_headers)
