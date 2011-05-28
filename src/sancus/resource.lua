@@ -4,7 +4,7 @@ require "sancus.object"
 
 local coroutine = coroutine
 local tconcat = table.concat
-local pairs = pairs
+local pairs, type = pairs, type
 
 local Class = sancus.object.Class
 
@@ -20,6 +20,7 @@ local function _methods(o)
 		end
 	end
 	t["HEAD"] = o["HEAD"] or t["GET"]
+	t["OPTIONS"] = true
 	return t
 end
 
@@ -35,10 +36,30 @@ function C:__call(wsapi_env)
 	local method = wsapi_env.headers["REQUEST_METHOD"]
 	local handler
 
+	-- supported methods
 	if not self._methods then
 		self._methods = _methods(self)
 	end
+
 	handler = self._methods[method]
+
+	-- OPTIONS is special
+	if method == "OPTIONS" and type(handler) ~= "function" then
+		if not self._methods_allow then
+			self._methods_allow = _allows(self._methods)
+		end
+
+		local headers = {
+			["Content-Type"] = "text/plain",
+			["Allow"] = self._methods_allow,
+		}
+
+		local function h(_)
+			return 200, headers, function() end
+		end
+
+		self._methods[method], handler = h, h
+	end
 
 	-- 405
 	if not handler then
