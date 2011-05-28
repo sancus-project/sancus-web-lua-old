@@ -4,7 +4,10 @@ local setmetatable = setmetatable
 
 module(...)
 
---
+local _class = {
+	__call = function (c, ...) return c.new(...) end,
+}
+
 function Class(c)
 	c = c or {}
 	c.__index = c
@@ -14,6 +17,8 @@ function Class(c)
 		setmetatable(o, c)
 		return o
 	end
+
+	setmetatable(c, _class)
 
 	return c
 end
