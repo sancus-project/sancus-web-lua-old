@@ -11,32 +11,39 @@ local Class = sancus.object.Class
 module (...)
 
 local C = Class()
-local C_new = C.new
 
-function C:new(o)
-	o = C_new(C, o)
-	o.methods = {}
+local function _methods(o)
+	local t = {}
 	for _, method in pairs{"GET", "POST", "PUT", "DELETE"} do
 		if o[method] then
-			o.methods[method] = o[method]
+			t[method] = o[method]
 		end
 	end
-	o.methods["HEAD"] = o["HEAD"] or o.methods["GET"]
-	return o
+	t["HEAD"] = o["HEAD"] or t["GET"]
+	return t
+end
+
+local function _allows(handlers)
+	local t = {}
+	for k,_ in pairs(handlers) do
+		t[#t+1] = k
+	end
+	return tconcat(t, ", ")
 end
 
 function C:__call(wsapi_env)
 	local method = wsapi_env.headers["REQUEST_METHOD"]
-	local handler = self.methods[method]
+	local handler
+
+	if not self._methods then
+		self._methods = _methods(self)
+	end
+	handler = self._methods[method]
 
 	-- 405
 	if not handler then
 		if not self._methods_allow then
-			local allow = {}
-			for k,_ in pairs(self.methods) do
-				allow[#allow+1] = k
-			end
-			self._methods_allow = tconcat(allow, ", ")
+			self._methods_allow = _allows(self._methods)
 		end
 
 		local headers = {
