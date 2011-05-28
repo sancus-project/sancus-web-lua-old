@@ -71,7 +71,7 @@ function M:find_handler(env)
 end
 
 function PathMapper(o)
-	o = M.new(o)
+	o = M(o)
 	o.patterns = o.patterns or {}
 	return o
 end
