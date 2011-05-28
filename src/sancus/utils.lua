@@ -1,7 +1,7 @@
 --
 
 local pairs, string, type, tostring = pairs, string, type, tostring
-local debug, next = debug, next
+local debug, next, print = debug, next, print
 
 local lfs = assert(require("lfs"))
 
@@ -80,6 +80,10 @@ function pformat(t, name, indent)
 	cart, autoref = "", ""
 	addtocart(t, name, indent)
 	return cart .. autoref
+end
+
+function pprint(t,n)
+	print(pformat(t,n))
 end
 
 function sibling_modules()
