@@ -6,7 +6,9 @@ local coroutine = coroutine
 module (...)
 
 function plain_handler_generator(status, text, headers)
-	local f = function () coroutine.yield(text) end
+	local f = function ()
+		if text then coroutine.yield(text) end
+	end
 
 	headers = headers or {}
 	headers["Content-Type"] = "text/plain; charset=UTF-8"
