@@ -51,14 +51,9 @@ function C:__call(wsapi_env)
 			self._methods_allow = _allows(self._methods)
 		end
 
-		local headers = {
-			["Content-Type"] = "text/plain",
+		local h = plain_handler_generator(200, nil, {
 			["Allow"] = self._methods_allow,
-		}
-
-		local function h(_)
-			return 200, headers, function() end
-		end
+			})
 
 		self._methods[method], handler = h, h
 	end
