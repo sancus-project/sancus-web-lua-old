@@ -1,12 +1,14 @@
 --
 
 require "sancus.object"
+require "sancus.exc"
 
 local coroutine = coroutine
 local tconcat = table.concat
 local pairs, type = pairs, type
 
 local Class = sancus.object.Class
+local plain_handler_generator = sancus.exc.plain_handler_generator
 
 module (...)
 
@@ -68,20 +70,10 @@ function C:__call(wsapi_env)
 				self._methods_allow = _allows(self._methods)
 			end
 
-			local headers = {
-				["Content-Type"] = "text/plain",
-				["Allow"] = self._methods_allow,
-			}
-
-			local function f405()
-				coroutine.yield("Method Not Allowed")
-			end
-
-			local function h(_)
-				return 405, headers, coroutine.wrap(f405)
-			end
-
-			self._handle405 = h
+			self._handle405 = plain_handler_generator(
+				405, "Method Not Allowed", {
+					["Allow"] = self._methods_allow,
+				})
 		end
 		handler = self._handle405
 	end
