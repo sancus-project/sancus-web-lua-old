@@ -3,9 +3,13 @@
 require "CodeGen"
 require "lfs"
 
+require "sancus.utils"
+
 local lfs, coroutine, CodeGen = lfs, coroutine, CodeGen
 local sformat, fopen = string.format, io.open
 local assert, pairs = assert, pairs
+
+local trim = sancus.utils.trim
 
 module(...)
 
@@ -22,7 +26,7 @@ function loaddir_raw(dir, prefix, out)
 				local bn = fn:match("^(.*)[.]([^.]+)$") or fn
 				local f = assert(fopen(ffn, "r"))
 
-				out[prefix..bn] = f:read("*all")
+				out[prefix..bn] = trim(f:read("*all"))
 				f:close()
 			end
 		end
