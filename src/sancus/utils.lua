@@ -3,7 +3,8 @@
 local pairs, string, type, tostring = pairs, string, type, tostring
 local debug, next, print = debug, next, print
 
-local lfs = assert(require("lfs"))
+local lfs = require("lfs")
+local lpeg = require("lpeg")
 
 module (...)
 
@@ -102,4 +103,15 @@ function sibling_modules()
 		end
 	end
 	return t
+end
+
+-- http://lua-users.org/lists/lua-l/2009-12/msg00921.html
+do
+	local space = lpeg.S' \t\n\v\f\r'
+	local nospace = 1 - space
+	local ptrim = space^0 * lpeg.C((space^0 * nospace^1)^0)
+	local match = lpeg.match
+	function trim(s)
+		return match(ptrim, s)
+	end
 end
