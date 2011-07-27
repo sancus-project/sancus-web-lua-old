@@ -42,13 +42,13 @@ local function parser()
 	-- Grammar
 	local URL, EOL = V"URL", V"EOL"
 	local Data = V"Data"
-	local Predicate, Name, Option = V"Predicate", V"Name", V"Option"
+	local Lookup, Name, Option = V"Lookup", V"Name", V"Option"
 	local Optional = V"Optional"
 
 	-- Callbacks
 	local h = {}
 
-	function h.predicate(name, ...)
+	function h.lookup(name, ...)
 		local q
 		for _, x in ipairs({...}) do
 			if type(x) == "string" then
@@ -71,21 +71,21 @@ local function parser()
 	return P{URL,
 		URL = Data^1 * EOL,
 		Data = Optional
-			+ Predicate
+			+ Lookup
 			+ C(any),
 
 		-- Optional <- "[" data "]"
 		Optional = (bo * Data^1 * eo)/h.optional,
 
-		-- Predicate <- "{" name (":" option ("|" option)*) "}"
+		-- Lookup <- "{" name (":" option ("|" option)*) "}"
 		Name = C(identifier),
 		Option = C(segment^1),
 
-		Predicate = (P"{" * Name * (
+		Lookup = (P"{" * Name * (
 			P":" * Option * (
 				P"|" * Option
 				)^0
-			)^-1 * P"}")/h.predicate,
+			)^-1 * P"}")/h.lookup,
 
 		-- $<eos> or <eos>
 		EOL = (eol * eos)/h.eol + eos,
